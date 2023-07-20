@@ -33,8 +33,7 @@ This project includes test cases to ensure the proper functionality of the regis
 python manage.py test
 
 
-The test cases include the following scenarios:
-
+## The test cases include the following scenarios:
 1.Successful registration with all required fields.
 2.Registration with missing required fields.
 3.Registration with an invalid email address.
