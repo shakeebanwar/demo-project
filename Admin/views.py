@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from passlib.hash import django_pbkdf2_sha256 as handler
 from .serializer import *
-import Usable.usable as uc
+from Usable.usable import UsableComponent
 from decouple import config
 from Usable.permission import *
 from django.conf import settings
@@ -17,7 +17,7 @@ class Authentication(ModelViewSet):
         try:
             serializer = LoginSerializer(data=request.data)
             if not serializer.is_valid():
-                error = uc.execptionhandler(serializer)
+                error = UsableComponent.execptionhandler(serializer)
                 return Response({'status': False, 'message': error}, status=422)
 
             email = serializer.validated_data['email']
@@ -37,7 +37,7 @@ class Authentication(ModelViewSet):
             }
 
             jwt_token = jwtkeys.get(fetchuser.role)
-            generate_auth = uc.generatedToken(fetchuser, jwt_token, 1, request)
+            generate_auth = UsableComponent.generatedToken(fetchuser, jwt_token, 1, request)
 
             if not generate_auth['status']:
                 return Response(generate_auth, status=500)
@@ -61,7 +61,7 @@ class Authentication(ModelViewSet):
             authorization_header = request.META.get('HTTP_AUTHORIZATION')
             token = authorization_header[7:]
 
-            if uc.blacklisttoken(token_id, token):
+            if UsableComponent.blacklisttoken(token_id, token):
                 return Response({'status': True, 'message': 'Logout successfully'}, status=200)
             else:
                 return Response({'status': False, 'message': 'Incorrect userid'}, status=403)
@@ -76,7 +76,7 @@ class Authentication(ModelViewSet):
         try:
             serializer = ChangePasswordSerializer(data=request.data)
             if not serializer.is_valid():
-                error = uc.execptionhandler(serializer)
+                error = UsableComponent.execptionhandler(serializer)
                 return Response({'status': False, 'message': error}, status=422)
             
             old_password = serializer.validated_data['oldpassword']
@@ -94,7 +94,7 @@ class Authentication(ModelViewSet):
 
             user.password = handler.hash(new_password)
             user.save()
-            uc.blacklisttoken(user_id,token)
+            UsableComponent.blacklisttoken(user_id,token)
             return Response({'status':True,'message':'Password Update Successfully'})
 
 

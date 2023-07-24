@@ -29,7 +29,6 @@ class RecruiterPermission(BasePermission):
             request.GET._mutable = True
             my_token = jwt.decode(tokencatch,config('recruiter'), algorithms=["HS256"])
             request.GET['token'] = my_token
-            # check token is valid or not
             WhitelistToken.objects.get(user = my_token['id'],token = tokencatch)
             return True
         

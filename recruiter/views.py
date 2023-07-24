@@ -1,11 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import Usable.usable as uc
+from Usable.usable import UsableComponent
 from Usable.permission import *
 from .serializer import *
 from django.conf import settings
-from Usable.permission import *
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from Admin.serializer import ProfileSerializer
@@ -19,7 +18,7 @@ class Registration(ModelViewSet):
         try:
             serializer = RecruiterSerilizer(data=request.data)
             if not serializer.is_valid():
-                error = uc.execptionhandler(serializer)
+                error = UsableComponent.execptionhandler(serializer)
                 return Response({"status": False, "message": error}, status=422)
             
             serializer.save()
