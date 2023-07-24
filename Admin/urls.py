@@ -1,18 +1,12 @@
-from django.urls import path,include
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import *
 
+router = DefaultRouter()
+router.register(r'authentication', Authentication, basename='authentication')
+router.register(r'profile', AdminProfile, basename='profile')
+router.register(r'accountactivation', AccountActivation, basename='accountactivation')
+
 urlpatterns = [
-
-#web urls  home
-
-path('login',login.as_view(),name="login"),
-path('logout',logout.as_view()),
-path('changepassword',changepassword.as_view()),
-path('profile',profile.as_view()),
-path('accountActivation',accountActivation.as_view()),
-path('alljobs',alljobs.as_view()),
-
-
-
-
+    path('', include(router.urls)),
 ]

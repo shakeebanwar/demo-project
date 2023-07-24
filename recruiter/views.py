@@ -3,56 +3,41 @@ from rest_framework.response import Response
 from rest_framework import status
 import Usable.usable as uc
 from Usable.permission import *
-from .serilizer import *
+from .serializer import *
 from django.conf import settings
 from Usable.permission import *
-from django.db.models import F
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
+from Admin.serializer import ProfileSerializer
+from Usable.usable import CustomPageNumberPagination
 
 # Create your views here.
-class registration(APIView):
-    permission_classes = [authorization]
 
-    def get_permissions(self, *args, **kwargs):
-        if self.request.method in ['GET']:
-            return [authorization()]
-        else:
-            return []
-
-
-    def get(self,request):
+class Registration(ModelViewSet):
+    @action(detail=False, methods=['post'])
+    def signup(self,request):
         try:
-            data = Auth.objects.filter(role = "recruiter").order_by('-created_at')
-            serdata = serGetrecruiter(data,many = True).data
-            return Response({"status":True,"data":serdata})
+            serializer = RecruiterSerilizer(data=request.data)
+            if not serializer.is_valid():
+                error = uc.execptionhandler(serializer)
+                return Response({"status": False, "message": error}, status=422)
+            
+            serializer.save()
+            return Response({"status": True, "message":"Account Created Successfully","data":serializer.data},status=201)
+
+        
+        except Exception as e:
+            return Response({'status':False,'errors':str(e)},status=403)
+
+    @action(detail=False, methods=['get'],permission_classes = [Authorization])
+    def allrecruiter(self,request):
+        try:
+            data = Auth.objects.filter(role="recruiter").order_by('-created_at')
+            paginator = CustomPageNumberPagination()
+            paginated_data = paginator.paginate_queryset(data, request)
+            serdata = ProfileSerializer(paginated_data, many=True).data
+            return paginator.get_paginated_response({"status": True, "data": serdata})
 
         except Exception as e:
-            message = {'status':False}
-            message.update(message=str(e))if settings.DEBUG else message.update(message='Internal server error')
-            return Response(message,status=500)
-
-
-
-    def post(self,request):
-        try:
-            requireFields = ['fname','lname','email','password','address','contact','birthday','gender']
-            val = serRegistration(data = request.data,context = {'request':request,"requireFields":requireFields,"role":"recruiter"})
-            
-            if val.is_valid():
-                val.save()
-
-                #choose specific keys
-                finaldata = uc.removeDic(val.data,['updated_at','created_at','password','status','contact','birthday','profile','Otp','OtpCount','category'])
-                return Response({"status":True,"message":"Account Created Successfully","data":finaldata},status = 201)
-
-            else:
-                error = uc.execptionhandler(val)
-                return Response({'status':False,'message':error},status=422)
-
-        except Exception as e:
-            
-            message = {'status':False}
-            message.update(message=str(e))if settings.DEBUG else message.update(message='Internal server error')
-            return Response(message,status=500)
-
-
+            return Response({'status':False,'errors':str(e)},status=403)
 
